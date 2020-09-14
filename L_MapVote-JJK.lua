@@ -13,6 +13,12 @@ local vote_time = CV_RegisterVar({
 	flags = CV_NETVAR,
 	PossibleValue = {MIN = 1, MAX = 100}
 })
+local weighted_random = CV_RegisterVar({
+    name = "weightedrandom",
+    defaultvalue = "On",
+    flags = CV_NETVAR,
+    PossibleValue = CV_OnOff
+})
 
 --Constants
 local END_TIME = 6
@@ -596,8 +602,25 @@ addHook("IntermissionThinker", function()
 			local skinlist = {"sonic", "tails", "knuckles", "amy", "fang", "metalsonic"}
 			netvote.runskin = skinlist[P_RandomRange(1, #skinlist)]
 			
-			--Choose the most popular map or roll an RNG tiebreaker. This is probably a dumb way to do this but shut up
 			local votedslot = 1
+            if weighted_random.value
+                local num_votes = 3 --Every map gets 1 vote initially
+                for i = 1,3
+                    num_votes = num_votes + netvote.vote_tally[i]
+                end
+                local weight_select = P_RandomKey(num_votes)
+                local vote_count = 0
+                for i = 1,3
+                    local current_tally = netvote.vote_tally[i] + 1
+                    if weight_select < vote_count + current_tally
+                        votedslot = i
+                        break
+                    else
+                        vote_count = vote_count + current_tally
+                    end
+                end
+            else
+                --Choose the most popular map or roll an RNG tiebreaker. This is probably a dumb way to do this but shut up
 			if netvote.vote_tally[1] == netvote.vote_tally[2] and netvote.vote_tally[1] == netvote.vote_tally[3] --three way tiebreaker
 				votedslot = P_RandomRange(1,3)
 				print("\130There's a three-way tie! Picking randomly...")
@@ -623,6 +646,7 @@ addHook("IntermissionThinker", function()
 					end
 				end
 			end
+            end
 			netvote.decided_map = netvote.map_choice[votedslot]
 			netvote.decided_gt = netvote.gt_choice[votedslot]
 			print("\130The winner is: " + MapIDToName(netvote.decided_map) + " (" + IntToGametypeName(netvote.decided_gt) + ")")
