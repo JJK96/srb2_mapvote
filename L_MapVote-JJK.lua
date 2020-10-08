@@ -19,6 +19,12 @@ local weighted_random = CV_RegisterVar({
     flags = CV_NETVAR,
     PossibleValue = CV_OnOff
 })
+local vote_weight = CV_RegisterVar({
+    name = "voteweight",
+    defaultvalue = 1,
+    flags = CV_NETVAR,
+    PossibleValue = CV_Natural
+})
 
 --Constants
 local END_TIME = 6
@@ -607,12 +613,12 @@ addHook("IntermissionThinker", function()
             if weighted_random.value
                 local num_votes = 3 --Every map gets 1 vote initially
                 for i = 1,3
-                    num_votes = num_votes + netvote.vote_tally[i]
+                    num_votes = num_votes + vote_weight.value * netvote.vote_tally[i]
                 end
                 local weight_select = P_RandomKey(num_votes)
                 local vote_count = 0
                 for i = 1,3
-                    local current_tally = netvote.vote_tally[i] + 1
+                    local current_tally = vote_weight.value * netvote.vote_tally[i] + 1
                     if weight_select < vote_count + current_tally
                         votedslot = i
                         break
