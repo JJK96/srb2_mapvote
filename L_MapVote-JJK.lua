@@ -601,6 +601,7 @@ addHook("IntermissionThinker", function()
 			netvote.charruntime = 0
 			local skinlist = {"sonic", "tails", "knuckles", "amy", "fang", "metalsonic"}
 			netvote.runskin = skinlist[P_RandomRange(1, #skinlist)]
+			local winnertext = "\130The winner is: "
 			
 			local votedslot = 1
             if weighted_random.value
@@ -619,37 +620,38 @@ addHook("IntermissionThinker", function()
                         vote_count = vote_count + current_tally
                     end
                 end
+				winnertext = "\x87(weighted random) The winner is: "
             else
                 --Choose the most popular map or roll an RNG tiebreaker. This is probably a dumb way to do this but shut up
-			if netvote.vote_tally[1] == netvote.vote_tally[2] and netvote.vote_tally[1] == netvote.vote_tally[3] --three way tiebreaker
-				votedslot = P_RandomRange(1,3)
-				print("\130There's a three-way tie! Picking randomly...")
-			elseif netvote.vote_tally[1] == netvote.vote_tally[2] and netvote.vote_tally[3] < netvote.vote_tally[1] --two way tiebreaker, slot 1 or 2
-				votedslot = P_RandomRange(1,2)
-				print("\130There's a two-way tie! Picking randomly...")
-			elseif netvote.vote_tally[2] == netvote.vote_tally[3] and netvote.vote_tally[1] < netvote.vote_tally[2] --two way tiebreaker, slot 2 or 3
-				votedslot = P_RandomRange(2,3)
-				print("\130There's a two-way tie! Picking randomly...")
-			elseif netvote.vote_tally[1] == netvote.vote_tally[3] and netvote.vote_tally[2] < netvote.vote_tally[1] --two way tiebreaker, slot 1 or 3
-				if P_RandomRange(1,2) == 1
-					votedslot = 1
+				if netvote.vote_tally[1] == netvote.vote_tally[2] and netvote.vote_tally[1] == netvote.vote_tally[3] --three way tiebreaker
+					votedslot = P_RandomRange(1,3)
+					print("\130There's a three-way tie! Picking randomly...")
+				elseif netvote.vote_tally[1] == netvote.vote_tally[2] and netvote.vote_tally[3] < netvote.vote_tally[1] --two way tiebreaker, slot 1 or 2
+					votedslot = P_RandomRange(1,2)
+					print("\130There's a two-way tie! Picking randomly...")
+				elseif netvote.vote_tally[2] == netvote.vote_tally[3] and netvote.vote_tally[1] < netvote.vote_tally[2] --two way tiebreaker, slot 2 or 3
+					votedslot = P_RandomRange(2,3)
+					print("\130There's a two-way tie! Picking randomly...")
+				elseif netvote.vote_tally[1] == netvote.vote_tally[3] and netvote.vote_tally[2] < netvote.vote_tally[1] --two way tiebreaker, slot 1 or 3
+					if P_RandomRange(1,2) == 1
+						votedslot = 1
+					else
+						votedslot = 3
+					end
+					print("\130There's a two-way tie! Picking randomly...")
 				else
-					votedslot = 3
-				end
-				print("\130There's a two-way tie! Picking randomly...")
-			else
-				local best = 0
-				for i = 1, 3
-					if netvote.vote_tally[i] > best
-						best = netvote.vote_tally[i]
-						votedslot = i
+					local best = 0
+					for i = 1, 3
+						if netvote.vote_tally[i] > best
+							best = netvote.vote_tally[i]
+							votedslot = i
+						end
 					end
 				end
-			end
             end
 			netvote.decided_map = netvote.map_choice[votedslot]
 			netvote.decided_gt = netvote.gt_choice[votedslot]
-			print("\130The winner is: " + MapIDToName(netvote.decided_map) + " (" + IntToGametypeName(netvote.decided_gt) + ")")
+			print(winnertext + MapIDToName(netvote.decided_map) + " (" + IntToGametypeName(netvote.decided_gt) + ")")
 		end
 	
 	--End
